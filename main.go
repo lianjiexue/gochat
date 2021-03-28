@@ -18,6 +18,12 @@ type Client struct {
 	Uid int
 	Username string
 }
+type Message struct {
+	MessageId string  `json:"messageid"`
+	FromId   string   `json:"fromid"`
+	ToId     string   `json:"toid"`
+	Content  string   `json:"content"`	
+}
 var err error
 var clients map[*Client]bool
 func init(){
@@ -64,10 +70,16 @@ func main(){
 				delete(clients,client)
 				return
 			}
+
 			log.Println(len(clients))
 			log.Println(client)
 			//写数据
-
+			var message Message
+			err = json.Unmarshal(data,&message)
+			if err != nil{
+				conn.WriteMessage(messagetype,[]byte("发送失败"))
+				return
+			}
 			err = conn.WriteMessage(messagetype,data)
 
 			if err != nil{
