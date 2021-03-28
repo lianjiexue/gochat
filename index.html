@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<div id="app">
+	app
+</div>
+<script type="text/javascript">
+	var ws = new WebSocket("ws://127.0.0.1:8080/ws")
+
+	ws.onclose = function(){
+		console.log("链接关闭")
+	}
+
+	ws.onopen = function(evt){
+		console.log(evt.data)
+	}
+
+	ws.onmessage = function(evt){
+		console.log(evt.data)
+	}
+</script>
+</body>
+</html>
