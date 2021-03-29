@@ -56,40 +56,16 @@ func readLoop(conn *websocket.Conn) {
 		client.Uid = message.FromId
 		client.Conn = conn
 		clients[Conn] = client
-		return
 
 	case "online":
 		conn.WriteMessage(messagetype, onlineUser())
-		return
-
 	case "message":
-		var nowUid string
+		var Uid string
 		var client = new(Client)
 		client = getOneClient()
-		var msg = new(Message)
-		err = json.UnMarshal(&msg)
-		if err != nil{
-			return
-		}
-		
-
-		for client, _ := range clients {
-
-			if client.Conn == conn {
-				nowUid = client.Uid
-			}
-			if client.Uid == message.ToId {
-				var msg = new(Message)
-				msg.MessageType = "message"
-				msg.FromId = nowUid
-				msg.Content = message.Content
-				data, err := json.Marshal(msg)
-				if err != nil {
-					return
-				}
-				client.Conn.WriteMessage(messagetype, data)
-			}
-		}
+		Uid = client.ToId
+		client = getOneClient(Uid)
+		client.Conn.WriteMessage(messagetype, data)
 	default:
 		return
 	}
