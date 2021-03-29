@@ -1,19 +1,11 @@
 package main
 
 import (
-	"app/db"
+	"app/model"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/gorilla/websocket"
 )
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
 
 var err error
 
@@ -38,20 +30,9 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "index.html")
 	})
-	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
-		var res map[string]interface{}
-		res = make(map[string]interface{})
-		res["code"] = 200
-		res["message"] = "success"
-		data, err := json.Marshal(res)
-
-		if err != nil {
-		}
-		fmt.Fprint(w, data)
-	})
-	http.HandleFunc("/api/users", db.GetUsers)
-	http.HandleFunc("/api/user", db.GetUser)
-	http.HandleFunc("/api/login", db.Login)
+	http.HandleFunc("/api/users", model.GetUsers)
+	http.HandleFunc("/api/user", model.GetUser)
+	http.HandleFunc("/api/login", model.Login)
 	//ws服务
 	http.HandleFunc("/ws", service)
 	http.ListenAndServe(":8080", nil)

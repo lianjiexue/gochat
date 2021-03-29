@@ -1,4 +1,4 @@
-package db
+package model
 
 import (
 	"net/http"
@@ -55,6 +55,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	data,err := json.Marshal(res)
 	if err != nil {
 		panic(err)
+		return
 	}
 	fmt.Fprint(w,string(data))
 }
