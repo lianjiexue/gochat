@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -56,7 +55,7 @@ func readLoop(conn *websocket.Conn) {
 		client := new(Client)
 		client.Uid = message.FromId
 		client.Conn = conn
-		clients[client] = true
+		clients[Conn] = client
 		return
 
 	case "online":
@@ -65,6 +64,14 @@ func readLoop(conn *websocket.Conn) {
 
 	case "message":
 		var nowUid string
+		var client = new(Client)
+		client = getOneClient()
+		var msg = new(Message)
+		err = json.UnMarshal(&msg)
+		if err != nil{
+			return
+		}
+		
 
 		for client, _ := range clients {
 
