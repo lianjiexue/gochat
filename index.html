@@ -2,6 +2,7 @@
 <html>
 <head>
 	<title></title>
+	<link rel="stylesheet" type="text/css" href="./static/css/bootstrap.min.css">
 </head>
 <body>
 <div id="app">
@@ -17,27 +18,14 @@
 			</div>
 	</div>
 </div>
+<script type="text/javascript" src="./static/js/vue.min.js"></script>
+<script type="text/javascript" src="./static/js/ws.js"></script>
 <script type="text/javascript">
-	var ws = new WebSocket("ws://127.0.0.1:8080/ws");
-	var uid = 8;
-
 	fetch("/api/user").then(function(res){
 		return res.json();
 	}).then(function(res){
 		console.log(res)
 	})
-	ws.onclose = function(){
-		console.log("链接关闭")
-	}
-
-	ws.onopen = function(evt){
-		console.log(evt.data)
-		//链接成功以后进行绑定
-	}
-
-	ws.onmessage = function(evt){
-		console.log(evt.data)
-	}
 	function login(){
 		var email = document.querySelector('input[name="email"]').value
 		var formdata = new FormData();

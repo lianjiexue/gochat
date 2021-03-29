@@ -12,7 +12,7 @@ type User struct {
 }
 
 func(u *User) TableName() string {
-	return "ls_users"
+	return "es_users"
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {

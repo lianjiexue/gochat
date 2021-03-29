@@ -50,6 +50,8 @@ func readLoop(conn *websocket.Conn) {
 		return
 	}
 	switch message.MessageType {
+	case "pong":
+		return
 	case "bind":
 		client := new(Client)
 		client.Uid = message.FromId
@@ -81,7 +83,8 @@ func readLoop(conn *websocket.Conn) {
 				client.Conn.WriteMessage(messagetype, data)
 			}
 		}
-
+	default:
+		return
 	}
 	err = conn.WriteMessage(messagetype, data)
 
