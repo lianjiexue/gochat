@@ -6,21 +6,62 @@
 <body>
 <div id="app">
 	app
+	<div class="container">
+			<div class="form-group">
+				<label>Email</label>
+				<input type="text" name="email">
+			</div>
+			<div class="form-group">
+				<button onclick="login()">登录</button>
+				<button onclick="bind()">绑定</button>
+			</div>
+	</div>
 </div>
 <script type="text/javascript">
-	var ws = new WebSocket("ws://127.0.0.1:8080/ws")
+	var ws = new WebSocket("ws://127.0.0.1:8080/ws");
+	var uid = 8;
 
+	fetch("/api/user").then(function(res){
+		return res.json();
+	}).then(function(res){
+		console.log(res)
+	})
 	ws.onclose = function(){
 		console.log("链接关闭")
 	}
 
 	ws.onopen = function(evt){
 		console.log(evt.data)
+		//链接成功以后进行绑定
 	}
 
 	ws.onmessage = function(evt){
 		console.log(evt.data)
 	}
+	function login(){
+		var email = document.querySelector('input[name="email"]').value
+		var formdata = new FormData();
+			formdata.append("email",email)
+		fetch("/api/login",{method:"post",body:formdata})
+		.then(function(res){
+			return res.json()
+		})
+		.then(function(res){
+			uid = res.uid
+		})
+	}
+	function bind(){
+		var obj = {};
+			obj.messageType = "bind";
+			obj.Uid = uid;
+		ws.send(JSON.stringify(obj));
+	}
+	//查询在线用户
+	setInterval(function(){
+		var obj = {}
+			obj.messageType = 'online'
+		ws.send(JSON.stringify(obj));
+	},1000 * 55)
 </script>
 </body>
 </html>
