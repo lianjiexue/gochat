@@ -30,9 +30,9 @@ func readLoop(conn *websocket.Conn) {
 
 	if err != nil {
 		log.Println("断开链接")
-		for client, _ := range clients {
+		for _,client := range clients {
 			if client.Conn == conn {
-				delete(clients, client)
+				delete(clients, conn)
 			}
 		}
 		return
@@ -52,18 +52,17 @@ func readLoop(conn *websocket.Conn) {
 	case "pong":
 		return
 	case "bind":
-		client := new(Client)
+		var client Client
 		client.Uid = message.FromId
 		client.Conn = conn
-		clients[Conn] = client
+		clients[conn] = client
 
 	case "online":
 		conn.WriteMessage(messagetype, onlineUser())
 	case "message":
 		var Uid string
-		var client = new(Client)
-		client = getOneClient()
-		Uid = client.ToId
+			Uid = message.ToId
+		var client Client
 		client = getOneClient(Uid)
 		client.Conn.WriteMessage(messagetype, data)
 	default:

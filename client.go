@@ -12,14 +12,16 @@ type Client struct {
 
 var clients map[*websocket.Conn]Client
 func init() {
-	clients = make(map[*Client]bool)
+	clients = make(map[*websocket.Conn]Client)
 }
 
-func getOneClient(uid int) Client{
-	for client,_ := range clients {
+func getOneClient(uid string) Client{
+	var  c Client
+	for _,client := range clients {
 		if client.Uid == uid {
 			return client
 		}
 		break
 	}
+	return c
 }
