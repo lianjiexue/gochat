@@ -17,7 +17,7 @@ var conn *websocket.Conn
 
 // 1.bind  2.online  3.message
 type Message struct {
-	MessageType string `json:"type"`
+	Type 		string `json:"type"`
 	MessageId   string `json:"messageid"`
 	FromId      string `json:"fromid"`
 	ToId        string `json:"toid"`
@@ -42,13 +42,16 @@ func readLoop(conn *websocket.Conn) {
 	err = json.Unmarshal(data, &message)
 	if err != nil {
 		conn.WriteMessage(messagetype, []byte("发送失败"))
+		log.Println(err)
 		return
+	} else {
+		log.Println(message.Type)
 	}
-	if message.MessageType != "online" || message.MessageType != "bind" || message.MessageType != " message" {
+	if message.Type != "online" && message.Type != "bind" && message.Type != "message" && message.Type != "pong" {
 		conn.WriteMessage(messagetype, []byte("格式错误"))
 		return
 	}
-	switch message.MessageType {
+	switch message.Type {
 	case "pong":
 		return
 	case "bind":
@@ -64,7 +67,17 @@ func readLoop(conn *websocket.Conn) {
 			Uid = message.ToId
 		var client Client
 		client = getOneClient(Uid)
-		client.Conn.WriteMessage(messagetype, data)
+		log.Println("对象客户端")
+		// log.Println(client)
+		if client.Conn != nil{
+				client.Conn.WriteMessage(messagetype, data)
+		} else {
+				conn.WriteMessage(messagetype, []byte("对象已离线"))
+		}
+		// if client.Uid{
+		// 
+		// }
+		
 	default:
 		return
 	}

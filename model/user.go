@@ -7,12 +7,12 @@ import (
 )
 
 type User struct {
-	Uid int `gorm:"uid" json:"uid"`
-	Username string `gorm:username json:"username"`
+	Id int `gorm:"uid" json:"id"`
+	Nickname string `gorm:nickname json:"nickname"`
 }
 
 func(u *User) TableName() string {
-	return "ct_users"
+	return "gc_users"
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
