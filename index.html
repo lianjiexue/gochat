@@ -71,6 +71,15 @@
 				content:''
 			}
 		},
+		created(){
+			var uid = localStorage.getItem("uid");
+			var self = this;
+			if(uid) {
+				self.islogin = true;
+			} else {
+				self.islogin = false;
+			}
+		},
 		methods:{
 			login(){
 				var self = this
