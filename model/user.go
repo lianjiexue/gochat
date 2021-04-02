@@ -4,34 +4,19 @@ import (
 	"net/http"
 	"fmt"
 	"encoding/json"
+	"strconv"
 )
 
 type User struct {
-
 	Id int `gorm:"uid" json:"id"`
-	Nickname string `gorm:nickname json:"nickname"`
-	Friends []Friend `gorm:"foreignKey:uid"`
+	Nickname string `gorm:"nickname" json:"nickname"`
+	Friends []Friend `gorm:"foreignKey:uid" json:"firends,omitempty"`
 }
 
 func(u *User) TableName() string {
 	return "gc_users"
 }
 
-func GetUsers(w http.ResponseWriter, r *http.Request) {
-	var users []User
-	db.Find(&users)
-	var res map[string]interface{}
-
-	res = make(map[string]interface{})
-	res["code"] = 200
-	res["message"] = "success"
-	res["data"] = users
-	data,err := json.Marshal(res)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Fprint(w,string(data))
-}
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	db.First(&user)
@@ -42,7 +27,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	data = make(map[string]interface{})
 
 	data["user"] = user
-	data["firends"] = getFriendsById(1)
+	data["friends"] = getFriendsById(1)
 
 	res["code"] = 200
 	res["message"] = "success"
@@ -55,19 +40,51 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	
 	fmt.Fprint(w,string(resdata))
 }
-func Login(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.FormValue("email"))
-	var user User
-	db.First(&user)
+func UserFriends(w http.ResponseWriter, r *http.Request) {
+	var uid = r.PostFormValue("uid")
+	user_id, err := strconv.Atoi(uid)
+	if err != nil{
+		return
+	}
+	var users []User
+	users = getFriendsById(user_id)
+
 	var res map[string]interface{}
 	res = make(map[string]interface{})
+
 	res["code"] = 200
 	res["message"] = "success"
-	res["data"] = user
+	res["data"] = users
 	data,err := json.Marshal(res)
 	if err != nil {
 		panic(err)
 		return
 	}
 	fmt.Fprint(w,string(data))
+}
+func Login(w http.ResponseWriter, r *http.Request) {
+	var email = r.PostFormValue("email")
+
+	var user User
+	db.Where("email",email).First(&user)
+
+	var res map[string]interface{}
+	res = make(map[string]interface{})
+
+	var data map[string]interface{}
+	data = make(map[string]interface{})
+
+	data["user"] = user
+	data["friends"] = getFriendsById(user.Id)
+
+	res["code"] = 200
+	res["message"] = "success"
+	res["data"] = data
+
+	resdata,err := json.Marshal(res)
+	if err != nil {
+		panic(err)
+	}
+	
+	fmt.Fprint(w,string(resdata))
 }

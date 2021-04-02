@@ -18,6 +18,6 @@ func getFriendsById(uid int)[]User{
 	db.Table("gc_friends").Where("uid",uid).Pluck("fid",&fids)	
 	log.Println(fids)
 	var users []User
-	db.Where("id=?",uid).Find(&users)
+	db.Where("id IN ?",fids).Find(&users)
 	return users	
 }

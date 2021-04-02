@@ -31,9 +31,9 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "index.html")
 	})
-	http.HandleFunc("/api/users", model.GetUsers)
 	http.HandleFunc("/api/user", model.GetUser)
 	http.HandleFunc("/api/login", model.Login)
+	http.HandleFunc("/api/user/friends", model.UserFriends)
 	//ws服务
 	http.HandleFunc("/ws", service)
 	http.ListenAndServe(":8080", nil)
