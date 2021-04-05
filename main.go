@@ -2,7 +2,6 @@ package main
 
 import (
 	"app/model"
-	"encoding/json"
 	"log"
 	"net/http"
 )
@@ -13,21 +12,10 @@ func init() {
 	log.Println("runing 127.0.0.1:8080")
 
 }
-func onlineUser() []byte {
-	var res map[string]interface{}
-	res = make(map[string]interface{})
-	res["code"] = 200
-	res["message"] = "success"
-	res["users"] = clients
-	users, err := json.Marshal(res)
-	if err != nil {
-		panic(err)
-	}
-	return users
-}
+
 func main() {
 	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/static/", http.StripPrefix("/static/",fs))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "index.html")
 	})

@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title></title>
+	<title>在线通讯</title>
+	<meta charset="utf-8">
+	 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<link rel="stylesheet" type="text/css" href="./static/css/bootstrap.min.css">
 </head>
 <body>
@@ -130,24 +132,17 @@
 				var obj = {}
 					obj.type = "message"
 					obj.content = self.content
-					obj.fromid = localStorage.getItem("uid")
+					obj.fromid = parseInt(localStorage.getItem("uid"))
 					obj.toid =  self.temp.id
 				ws.send(JSON.stringify(obj))
 			}
 		}
 	})
-	
-	function bind(){
-		var obj = {};
-			obj.type = "bind";
-			obj.Uid = uid;
-		ws.send(JSON.stringify(obj));
-	}
+
 	//查询在线用户
 	setInterval(function(){
-		var obj = {}
-			obj.type = "pong"
-		ws.send(JSON.stringify(obj));
+		ws.send(JSON.stringify({type:"online"}))
+		ws.send(JSON.stringify({type:"pong"}));
 	},1000 * 55)
 </script>
 </body>

@@ -1,22 +1,26 @@
 package model
 
 import (
-	"net/http"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"strconv"
 )
 
 type User struct {
-	Id int `gorm:"uid" json:"id"`
-	Nickname string `gorm:"nickname" json:"nickname"`
-	Friends []Friend `gorm:"foreignKey:uid" json:"firends,omitempty"`
+	Id       int      `gorm:"uid" json:"id"`
+	Nickname string   `gorm:"nickname" json:"nickname"`
+	Friends  []Friend `gorm:"foreignKey:uid" json:"firends,omitempty"`
 }
 
-func(u *User) TableName() string {
+func (u *User) TableName() string {
 	return "gc_users"
 }
-
+func GetUserName(uid int) string {
+	var user User
+	db.Where("id=?", uid).First(&user)
+	return user.Nickname
+}
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	db.First(&user)
@@ -33,17 +37,17 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	res["message"] = "success"
 	res["data"] = data
 
-	resdata,err := json.Marshal(res)
+	resdata, err := json.Marshal(res)
 	if err != nil {
 		panic(err)
 	}
-	
-	fmt.Fprint(w,string(resdata))
+
+	fmt.Fprint(w, string(resdata))
 }
 func UserFriends(w http.ResponseWriter, r *http.Request) {
 	var uid = r.PostFormValue("uid")
 	user_id, err := strconv.Atoi(uid)
-	if err != nil{
+	if err != nil {
 		return
 	}
 	var users []User
@@ -55,18 +59,18 @@ func UserFriends(w http.ResponseWriter, r *http.Request) {
 	res["code"] = 200
 	res["message"] = "success"
 	res["data"] = users
-	data,err := json.Marshal(res)
+	data, err := json.Marshal(res)
 	if err != nil {
 		panic(err)
 		return
 	}
-	fmt.Fprint(w,string(data))
+	fmt.Fprint(w, string(data))
 }
 func Login(w http.ResponseWriter, r *http.Request) {
 	var email = r.PostFormValue("email")
 
 	var user User
-	db.Where("email",email).First(&user)
+	db.Where("email", email).First(&user)
 
 	var res map[string]interface{}
 	res = make(map[string]interface{})
@@ -81,10 +85,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	res["message"] = "success"
 	res["data"] = data
 
-	resdata,err := json.Marshal(res)
+	resdata, err := json.Marshal(res)
 	if err != nil {
 		panic(err)
 	}
-	
-	fmt.Fprint(w,string(resdata))
+
+	fmt.Fprint(w, string(resdata))
 }
