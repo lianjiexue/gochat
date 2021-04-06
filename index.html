@@ -141,7 +141,7 @@
 
 	//查询在线用户
 	setInterval(function(){
-		ws.send(JSON.stringify({type:"online"}))
+		// ws.send(JSON.stringify({type:"online"}))
 		ws.send(JSON.stringify({type:"pong"}));
 	},1000 * 55)
 </script>
