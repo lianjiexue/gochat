@@ -26,6 +26,8 @@ func main() {
 	http.HandleFunc("/api/user", model.GetUser)
 	http.HandleFunc("/api/login", model.Login)
 	http.HandleFunc("/api/user/friends", model.UserFriends)
+	http.HandleFunc("/api/message/add", model.AddMessage)
+	http.HandleFunc("/api/mood/add", model.AddMood)
 	//ws服务
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		ws(serve, w, r)
