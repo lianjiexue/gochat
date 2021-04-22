@@ -44,6 +44,28 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w, string(resdata))
 }
+func GetUserByUid(w http.ResponseWriter, r *http.Request) {
+	var uid = r.PostFormValue("uid")
+	user_id, err := strconv.Atoi(uid)
+	if err != nil {
+
+	}
+	var user User
+	db.Where("id", user_id).First(&user)
+	var res map[string]interface{}
+	res = make(map[string]interface{})
+
+	res["code"] = 200
+	res["message"] = "success"
+	res["data"] = user
+
+	data, err := json.Marshal(res)
+	if err != nil {
+		panic(err)
+		return
+	}
+	fmt.Fprint(w, string(data))
+}
 func UserFriends(w http.ResponseWriter, r *http.Request) {
 	var uid = r.PostFormValue("uid")
 	user_id, err := strconv.Atoi(uid)

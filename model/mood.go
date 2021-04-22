@@ -1,6 +1,8 @@
 package model
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,6 +13,7 @@ type Mood struct {
 	Content string `gorm:"content"`
 	Uid     int    `gorm:"uid"`
 	Time    int    `gorm:"time"`
+	IsDel   int    `gorm:"isdel"`
 }
 
 func (m *Mood) TableName() string {
@@ -26,4 +29,26 @@ func AddMood(w http.ResponseWriter, r *http.Request) {
 	mood.Content = r.FormValue("content")
 	mood.Time = int(time.Now().Unix())
 	db.Save(&mood)
+}
+func OneMood(w http.ResponseWriter, r *http.Request) {
+	var mood Mood
+	db.Where("read=0").First(&mood)
+	res := make(map[string]interface{})
+	res["code"] = 200
+	res["data"] = mood
+	data, err := json.Marshal(res)
+	if err != nil {
+		fmt.Fprintf(w, string(data))
+	}
+
+}
+
+func DelMood(w http.ResponseWriter, r *http.Request) {
+	db.Model(&Mood{}).Where("id=1").Update("isdel", 1)
+	res := make(map[string]interface{})
+	res["code"] = 200
+	data, err := json.Marshal(res)
+	if err != nil {
+		fmt.Fprintf(w, string(data))
+	}
 }
