@@ -12,8 +12,16 @@ type User struct {
 	Nickname string   `gorm:"nickname" json:"nickname"`
 	Friends  []Friend `gorm:"foreignKey:uid" json:"firends,omitempty"`
 }
+type OneUser struct {
+	Id       int    `gorm:"uid" json:"id"`
+	Nickname string `gorm:"nickname" json:"nickname"`
+	HeadImg  string `gorm:"head_img" json:"head_img"`
+}
 
 func (u *User) TableName() string {
+	return "gc_users"
+}
+func (ou *OneUser) TableName() string {
 	return "gc_users"
 }
 func GetUserName(uid int) string {
@@ -62,7 +70,7 @@ func GetUserByUid(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(res)
 	if err != nil {
 		panic(err)
-		return
+
 	}
 	fmt.Fprint(w, string(data))
 }
@@ -84,7 +92,6 @@ func UserFriends(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(res)
 	if err != nil {
 		panic(err)
-		return
 	}
 	fmt.Fprint(w, string(data))
 }

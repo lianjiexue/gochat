@@ -2,6 +2,7 @@ package main
 
 import (
 	"app/model"
+	"app/socket"
 	"log"
 	"net/http"
 )
@@ -15,8 +16,8 @@ func init() {
 
 func main() {
 
-	serve := &Serve{Clients: make(map[string]*Client), Messages: make(chan []byte), On: make(chan *Client), Off: make(chan *Client)}
-	go serve.run()
+	serve := &socket.Serve{Clients: make(map[string]*socket.Client), Messages: make(chan []byte), On: make(chan *socket.Client), Off: make(chan *socket.Client)}
+	go serve.Run()
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
@@ -26,7 +27,9 @@ func main() {
 	http.HandleFunc("/api/user", model.GetUser)
 	http.HandleFunc("/api/login", model.Login)
 	http.HandleFunc("/api/user/friends", model.UserFriends)
-	http.HandleFunc("/api/message/add", model.AddMessage)
+	http.HandleFunc("/api/message/new", func(w http.ResponseWriter, r *http.Request) {
+		model.NewMessage(serve, w, r)
+	})
 	//个人
 	http.HandleFunc("/api/user/info", model.GetUserByUid)
 	//心情
@@ -36,7 +39,7 @@ func main() {
 
 	//ws服务
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		ws(serve, w, r)
+		socket.Ws(serve, w, r)
 	})
 	http.ListenAndServe(":8081", nil)
 }

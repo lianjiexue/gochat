@@ -1,4 +1,4 @@
-package main
+package socket
 
 import (
 	"log"
@@ -23,7 +23,7 @@ type Serve struct {
 	Off      chan *Client
 }
 
-func ws(serve *Serve, w http.ResponseWriter, r *http.Request) {
+func Ws(serve *Serve, w http.ResponseWriter, r *http.Request) {
 	conn, error := upgrader.Upgrade(w, r, nil)
 	if error != nil {
 		log.Println("未链接")
@@ -37,8 +37,9 @@ func ws(serve *Serve, w http.ResponseWriter, r *http.Request) {
 	go client.ReadMsg()
 	go client.WriteMsg()
 }
-func (s *Serve) getClinet(uid int) *Client {
+func (s *Serve) GetClinet(uid int) *Client {
 	cli := new(Client)
+	log.Println(s.Clients)
 	for _, client := range s.Clients {
 		//获取到客户端
 		log.Println("获取到客户端", client)
@@ -49,7 +50,7 @@ func (s *Serve) getClinet(uid int) *Client {
 	}
 	return cli
 }
-func (s *Serve) run() {
+func (s *Serve) Run() {
 	for {
 		select {
 		case client := <-s.On:

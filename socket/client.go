@@ -1,4 +1,4 @@
-package main
+package socket
 
 import (
 	"encoding/json"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/gorilla/websocket"
 )
+
+var err error
 
 type Client struct {
 	Conn     *websocket.Conn
@@ -36,30 +38,17 @@ func done(client *Client, data []byte) {
 	} else {
 		log.Println(message.Type)
 	}
-	if message.Type != "online" && message.Type != "bind" && message.Type != "message" && message.Type != "pong" {
-		client.Conn.WriteMessage(1, []byte("格式错误"))
+	if message.Type != "online" && message.Type != "bind" && message.Type != "pong" {
+		client.Conn.WriteMessage(1, []byte("{\"type\":\"online\"}"))
 		return
 	}
 	//分类消息处理
 	switch message.Type {
-	case "pong":
-		return
+	case "ping":
+		client.Conn.WriteMessage(1, []byte("{\"type\":\"ping\"}"))
 	case "bind":
 		client.Uid = message.FromId
-	case "message":
-		var Uid int
-		Uid = message.ToId
-		log.Println(Uid)
-		cli := client.Serve.getClinet(Uid)
-		log.Println(cli)
-		if cli.Conn != nil {
-			log.Println("对象客户端")
-			log.Println(cli)
-			cli.Conn.WriteMessage(1, []byte(message.Content))
-		} else {
-			client.Conn.WriteMessage(1, []byte("用户已离线"))
-		}
-
+		client.Conn.WriteMessage(1, []byte("{\"type\":\"bind\"}"))
 	case "broadcast":
 		//群发
 		client.Serve.Messages <- data
