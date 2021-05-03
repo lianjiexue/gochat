@@ -1,6 +1,7 @@
 package socket
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -23,19 +24,69 @@ type Serve struct {
 	Off      chan *Client
 }
 
+type Client struct {
+	Conn     *websocket.Conn
+	Id       string
+	Uid      int
+	Serve    *Serve
+	NickName string
+	Send     chan []byte
+}
+
+type Message struct {
+	Type      string `json:"type"`
+	MessageId string `json:"messageid"`
+	FromId    int    `json:"fromid"`
+	ToId      int    `json:"toid"`
+	Content   string `json:"content"`
+}
+
 func Ws(serve *Serve, w http.ResponseWriter, r *http.Request) {
 	conn, error := upgrader.Upgrade(w, r, nil)
 	if error != nil {
 		log.Println("未链接")
+		log.Print(error)
+		return
 	}
 	guid := xid.New()
 	id := guid.String()
 	//生成一个用户
 	client := &Client{Conn: conn, Serve: serve, Id: id, Send: make(chan []byte)}
-	//写入到服务中
+	//注册到websocket服务中
 	serve.On <- client
-	go client.ReadMsg()
-	go client.WriteMsg()
+	go client.Done()
+}
+func (c *Client) Done() {
+	defer func() {
+		c.Serve.Off <- c
+		c.Conn.Close()
+	}()
+	for {
+		dataType, data, err := c.Conn.ReadMessage()
+		//判断消息是否能获取到
+		if err != nil {
+			log.Println("error")
+			return
+		}
+		var message Message
+		err = json.Unmarshal(data, &message)
+		if err != nil {
+			log.Println("消息解析失败")
+			return
+		}
+		if message.Type != "online" && message.Type != "bind" && message.Type != "pong" {
+			c.Conn.WriteMessage(dataType, []byte("{\"type\":\"online\"}"))
+			return
+		}
+		//分类消息处理
+		switch message.Type {
+		case "ping":
+			c.Conn.WriteMessage(dataType, []byte("{\"type\":\"ping\"}"))
+		case "bind":
+			c.Uid = message.FromId
+			c.Conn.WriteMessage(dataType, []byte("{\"type\":\"bind\"}"))
+		}
+	}
 }
 func (s *Serve) GetClinet(uid int) *Client {
 	cli := new(Client)
@@ -56,21 +107,8 @@ func (s *Serve) Run() {
 		case client := <-s.On:
 			// 用户接入
 			s.Clients[client.Id] = client
-			log.Println(client, "用户接入")
 		case client := <-s.Off:
-			log.Println("用户离开", client.Id)
-			//用户离开
 			delete(s.Clients, client.Id)
-			close(client.Send)
-			log.Println(client, "用户离开")
-		case message := <-s.Messages:
-			// 判断type 进行处理
-			// done(message)
-			for _, client := range s.Clients {
-				select {
-				case client.Send <- message:
-				}
-			}
 		}
 	}
 }

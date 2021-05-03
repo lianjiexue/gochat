@@ -10,7 +10,7 @@ import (
 var err error
 
 func init() {
-	log.Println("runing 127.0.0.1:8081")
+	log.Println("runing 127.0.0.1:8008")
 
 }
 
@@ -18,14 +18,10 @@ func main() {
 
 	serve := &socket.Serve{Clients: make(map[string]*socket.Client), Messages: make(chan []byte), On: make(chan *socket.Client), Off: make(chan *socket.Client)}
 	go serve.Run()
-
-	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "index.html")
-	})
 	http.HandleFunc("/api/user", model.GetUser)
 	http.HandleFunc("/api/login", model.Login)
+	http.HandleFunc("/api/register", model.Register)
+
 	http.HandleFunc("/api/user/friends", model.UserFriends)
 	http.HandleFunc("/api/message/new", func(w http.ResponseWriter, r *http.Request) {
 		model.NewMessage(serve, w, r)
@@ -41,5 +37,5 @@ func main() {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		socket.Ws(serve, w, r)
 	})
-	http.ListenAndServe(":8081", nil)
+	http.ListenAndServe(":8008", nil)
 }

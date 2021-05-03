@@ -12,13 +12,21 @@ import (
 	"github.com/go-basic/uuid"
 )
 
-type Message struct {
+type MessageMix struct {
 	Id        int    `gorm:"id" json:"id"`
 	MessageId string `gorm:"message_id" json:"message_id"`
 	FromId    int    `gorm:"from_id" json:"from_id"`
 	ToId      int    `gorm:"to_id" json:"to_id"`
 	Content   string `gorm:"content" json:"content"`
-	Time      int    `gorm:"time" json:"time"`
+}
+
+type Message struct {
+	MessageMix
+	Time int `gorm:"time" json:"time"`
+}
+type MessageNew struct {
+	MessageMix
+	Datetime string `gorm:"time" json:"datetime"`
 }
 
 func (m *Message) TableName() string {
@@ -42,7 +50,16 @@ func NewMessage(serve *socket.Serve, w http.ResponseWriter, r *http.Request) {
 	msg.Content = r.FormValue("content")
 	msg.Time = int(time.Now().Unix())
 	db.Save(&msg)
-	is_socket := SendMsg(msg, serve)
+	var msgnew MessageNew
+	msgnew.MessageId = msg.MessageId
+	msgnew.Content = msg.Content
+	msgnew.FromId = msg.FromId
+	msgnew.ToId = msg.ToId
+	msgnew.Content = msg.Content
+	msgnew.Datetime = time.Unix(int64(msg.Time), 0).Format("2006.1.2")
+
+	log.Println(msgnew)
+	is_socket := SendMsg(msgnew, serve)
 
 	if is_socket == true {
 		fmt.Fprintf(w, "{\"code\":200}")
@@ -50,7 +67,7 @@ func NewMessage(serve *socket.Serve, w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "{\"code\":0}")
 	}
 }
-func SendMsg(msg Message, serve *socket.Serve) bool {
+func SendMsg(msg MessageNew, serve *socket.Serve) bool {
 	data := make(map[string]interface{})
 	data["type"] = "message"
 	data["msg"] = msg
