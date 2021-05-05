@@ -139,3 +139,41 @@ func Register(ctx *gin.Context) {
 	}
 
 }
+
+func GetUserFollow(ctx *gin.Context) {
+
+	uid := ctx.PostForm("uid")
+	fid := ctx.PostForm("fid")
+	newUid, _ := strconv.Atoi(uid)
+	newFid, _ := strconv.Atoi(fid)
+
+	var one OneUser
+	result := db.Model(&User{}).Where("id", newUid).First(&one)
+	if result.Error != nil {
+		ctx.JSON(200, gin.H{
+			"code": 0,
+		})
+	}
+	var friend Friend
+	affected := db.Model(&Friend{}).Where("uid", newUid).Where("fid", newFid).Take(&friend)
+	if affected.Error != nil {
+		ctx.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+			"data": gin.H{
+				"user":      one,
+				"is_follow": 0,
+			},
+		})
+	} else {
+		ctx.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+			"data": gin.H{
+				"user":      one,
+				"is_follow": 1,
+			},
+		})
+	}
+
+}

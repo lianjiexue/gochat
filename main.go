@@ -27,6 +27,7 @@ func main() {
 	router.POST("/api/register", model.Register)
 	//个人
 	router.POST("/api/user/info", model.GetUserByUid)
+	router.POST("/api/user/follow", model.GetUserFollow)
 	router.POST("/api/user/friends", model.UserFriends)
 	router.POST("/api/message/new", func(ctx *gin.Context) {
 		model.NewMessage(serve, ctx)
@@ -35,6 +36,10 @@ func main() {
 	router.POST("/api/mood/add", model.AddMood)
 	router.POST("/api/mood/one", model.OneMood)
 	router.POST("/api/mood/del", model.DelMood)
+
+	//好友
+	router.POST("/api/friend/follow", model.Follow)
+	router.POST("/api/friend/unfollow", model.UnFollow)
 	//ws服务
 	router.GET("/ws", func(ctx *gin.Context) {
 		socket.Ws(serve, ctx)
