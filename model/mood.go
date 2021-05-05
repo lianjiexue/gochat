@@ -1,72 +1,84 @@
 package model
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-type Mood struct {
+type MoodMixin struct {
 	Id      int    `gorm:"id" json:"id"`
 	Content string `gorm:"content" json:"content"`
 	Uid     int    `gorm:"uid" json:"uid"`
-	Time    int    `gorm:"time" json:"time"`
 	IsDel   int    `gorm:"is_del" json:"is_del"`
 	IsRead  int    `gorm:"is_read" json:"is_read"`
+}
+
+type Mood struct {
+	MoodMixin
+	Time int `gorm:"time" json:"time"`
+}
+type MoodTime struct {
+	MoodMixin
+	DateTime string `gorm:"time" json:"datetime"`
 }
 
 func (m *Mood) TableName() string {
 	return "gc_mood"
 }
-func AddMood(w http.ResponseWriter, r *http.Request) {
+func (mt *MoodTime) TableName() string {
+	return "gc_mood"
+}
+func AddMood(ctx *gin.Context) {
 	var mood Mood
-	uid, err := strconv.Atoi(r.FormValue("uid"))
+	uid, err := strconv.Atoi(ctx.PostForm("uid"))
 	if err != nil {
 		return
 	}
 	mood.Uid = uid
-	mood.Content = r.FormValue("content")
+	mood.Content = ctx.PostForm("content")
 	mood.Time = int(time.Now().Unix())
 	db.Save(&mood)
-	fmt.Fprintf(w, "{\"code\":200}")
+	ctx.JSON(200, gin.H{
+		"code": 200,
+	})
 }
-func OneMood(w http.ResponseWriter, r *http.Request) {
+func OneMood(ctx *gin.Context) {
 	var mood Mood
+	var moodtime MoodTime
+
 	//读取记录
 	db.Where("is_read=0").First(&mood)
-	log.Println(mood)
+	moodtime.MoodMixin = mood.MoodMixin
+	moodtime.DateTime = time.Unix(int64(mood.Time), 0).Format("2006.1.2")
+	log.Println(moodtime)
 	if mood.Id != 0 {
 		//将记录设置为已读
 		db.Model(&Mood{}).Where("id", mood.Id).Update("is_read", 1)
 
 		var user OneUser
 		db.Where("id", mood.Uid).First(&user)
-		res := make(map[string]interface{})
-		data := make(map[string]interface{})
-		data["user"] = user
-		data["mood"] = mood
-		res["code"] = 200
-		res["data"] = data
-		result, err := json.Marshal(res)
-		if err != nil {
-
-		}
-		fmt.Fprintf(w, string(result))
+		ctx.JSON(200, gin.H{
+			"code": 200,
+			"data": gin.H{
+				"user": user,
+				"mood": moodtime,
+			},
+		})
 	} else {
-		fmt.Fprintf(w, "{\"code\":0}")
+		ctx.JSON(200, gin.H{
+			"code": 0,
+		})
 	}
 
 }
 
-func DelMood(w http.ResponseWriter, r *http.Request) {
-	db.Model(&Mood{}).Where("id=1").Update("is_del", 1)
-	res := make(map[string]interface{})
-	res["code"] = 200
-	data, err := json.Marshal(res)
-	if err != nil {
-		fmt.Fprintf(w, string(data))
-	}
+func DelMood(ctx *gin.Context) {
+	id := ctx.PostForm("id")
+	db.Model(&Mood{}).Where("id", id).Update("is_del", 1)
+	ctx.JSON(200, gin.H{
+		"code": 200,
+	})
 }

@@ -2,10 +2,11 @@ package model
 
 import (
 	"crypto/md5"
-	"encoding/json"
 	"fmt"
-	"net/http"
+	"log"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type User struct {
@@ -43,111 +44,74 @@ func GetUserName(uid int) string {
 	db.Where("id=?", uid).First(&user)
 	return user.Nickname
 }
-func GetUser(w http.ResponseWriter, r *http.Request) {
-	var uid = r.PostFormValue("uid")
+func GetUser(ctx *gin.Context) {
+	uid := ctx.PostForm("uid")
+	newUid, _ := strconv.Atoi(uid)
 	var user User
 	db.Where("id", uid).First(&user)
-	var res map[string]interface{}
-	res = make(map[string]interface{})
-
-	var data map[string]interface{}
-	data = make(map[string]interface{})
-
-	data["user"] = user
-	data["friends"] = getFriendsById(1)
-
-	res["code"] = 200
-	res["message"] = "success"
-	res["data"] = data
-
-	resdata, err := json.Marshal(res)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Fprint(w, string(resdata))
+	friends := getFriendsById(newUid)
+	ctx.JSON(200, gin.H{
+		"code":    "200",
+		"message": "success",
+		"data":    gin.H{"user": user, "friends": friends},
+	})
 }
-func GetUserByUid(w http.ResponseWriter, r *http.Request) {
-	var uid = r.PostFormValue("uid")
-	user_id, err := strconv.Atoi(uid)
-	if err != nil {
-
-	}
+func GetUserByUid(ctx *gin.Context) {
+	uid := ctx.PostForm("uid")
+	newUid, _ := strconv.Atoi(uid)
+	log.Println(uid, newUid)
 	var user User
-	db.Where("id", user_id).First(&user)
-	var res map[string]interface{}
-	res = make(map[string]interface{})
+	db.Where("id", newUid).First(&user)
 
-	res["code"] = 200
-	res["message"] = "success"
-	res["data"] = user
-
-	data, err := json.Marshal(res)
-	if err != nil {
-		panic(err)
-
-	}
-	fmt.Fprint(w, string(data))
+	ctx.JSON(200, gin.H{
+		"code":    200,
+		"message": "success",
+		"data":    user,
+	})
 }
-func UserFriends(w http.ResponseWriter, r *http.Request) {
-	var uid = r.PostFormValue("uid")
-	user_id, err := strconv.Atoi(uid)
-	if err != nil {
-		return
-	}
-	var users []User
-	users = getFriendsById(user_id)
-
-	var res map[string]interface{}
-	res = make(map[string]interface{})
-
-	res["code"] = 200
-	res["message"] = "success"
-	res["data"] = users
-	data, err := json.Marshal(res)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Fprint(w, string(data))
+func UserFriends(ctx *gin.Context) {
+	uid := ctx.PostForm("uid")
+	newUid, _ := strconv.Atoi(uid)
+	users := getFriendsById(newUid)
+	ctx.JSON(200, gin.H{
+		"code":    200,
+		"message": "success",
+		"data":    users,
+	})
 }
-func Login(w http.ResponseWriter, r *http.Request) {
-	var email = r.PostFormValue("email")
+func Login(ctx *gin.Context) {
+	email := ctx.PostForm("email")
 
 	var user User
 	db.Where("email", email).First(&user)
-
-	var res map[string]interface{}
-	res = make(map[string]interface{})
-
-	var data map[string]interface{}
-	data = make(map[string]interface{})
-
-	data["user"] = user
-	data["friends"] = getFriendsById(user.Id)
-
-	res["code"] = 200
-	res["message"] = "success"
-	res["data"] = data
-
-	resdata, err := json.Marshal(res)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Fprint(w, string(resdata))
+	friends := getFriendsById(user.Id)
+	ctx.JSON(200, gin.H{
+		"code":    200,
+		"message": "success",
+		"data": gin.H{
+			"user":    user,
+			"friends": friends,
+		},
+	})
 }
-func Register(w http.ResponseWriter, r *http.Request) {
-	var email = r.PostFormValue("email")
-	var password = r.PostFormValue("password")
-	var verify = r.PostFormValue("verify")
+func Register(ctx *gin.Context) {
+	var email = ctx.PostForm("email")
+	var password = ctx.PostForm("password")
+	var verify = ctx.PostForm("verify")
 	if verify != "千里江陵一日还" {
-		fmt.Fprint(w, string("{\"code\":0,\"message\":\"验证错误\"}"))
+		ctx.JSON(200, gin.H{
+			"code":    0,
+			"message": "验证错误",
+		})
 		return
 	}
 	var user User
 	db.Where("email", email).First(&user)
 	if user.Id != 0 {
-		fmt.Fprint(w, string("{\"code\":0,\"message\":\"邮箱已注册\"}"))
+		ctx.JSON(200, gin.H{
+			"code":    0,
+			"message": "邮箱已注册",
+		})
 		return
 	}
 	data := []byte(password)
@@ -160,21 +124,18 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	//判断插入成功
 	if result.RowsAffected != 0 {
 		db.Where("email", email).First(&oneUser)
-		fmt.Println(result)
-		fmt.Println(oneUser)
-		res := make(map[string]interface{})
-		udata := make(map[string]interface{})
-		udata["uid"] = oneUser.Id
-		res["code"] = 200
-		res["message"] = "success"
-		res["data"] = udata
-		str, err := json.Marshal(res)
-		if err != nil {
-
-		}
-		fmt.Fprint(w, string(str))
+		ctx.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+			"data": gin.H{
+				"uid": oneUser.Id,
+			},
+		})
 	} else {
-		fmt.Fprint(w, string("{\"code\":0,\"message\":\"注册失败\"}"))
+		ctx.JSON(200, gin.H{
+			"code":    0,
+			"message": "注册失败",
+		})
 	}
 
 }

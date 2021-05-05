@@ -3,3 +3,6 @@
 
 ### 用到的库
 github.com/gorilla/websocket
+
+### 其它
+前后端分离，有一层nginx做转发和静态文件的处理

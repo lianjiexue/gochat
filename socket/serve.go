@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/rs/xid"
 )
@@ -41,8 +42,8 @@ type Message struct {
 	Content   string `json:"content"`
 }
 
-func Ws(serve *Serve, w http.ResponseWriter, r *http.Request) {
-	conn, error := upgrader.Upgrade(w, r, nil)
+func Ws(serve *Serve, ctx *gin.Context) {
+	conn, error := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if error != nil {
 		log.Println("未链接")
 		log.Print(error)
