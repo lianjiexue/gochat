@@ -1,10 +1,14 @@
 package model
 
 import (
+	"app/utils"
 	"crypto/md5"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -118,7 +122,7 @@ func Register(ctx *gin.Context) {
 	md5Str := fmt.Sprintf("%x", md5.Sum(data))
 	pwd := md5Str
 
-	oneUser := RegisterUser{Email: email, Password: pwd, Nickname: email, HeadImg: "https://bulma.io/images/placeholders/96x96.png"}
+	oneUser := RegisterUser{Email: email, Password: pwd, Nickname: email, HeadImg: "http://chat.daguozhensi.com/images/head_img_7.jpeg"}
 	result := db.Select("nickname", "password", "email", "head_img").Create(&oneUser)
 
 	//判断插入成功
@@ -140,6 +144,90 @@ func Register(ctx *gin.Context) {
 
 }
 
+//设置头像
+func SaveHeadImg(ctx *gin.Context) {
+	file, err := ctx.FormFile("file")
+
+	if err != nil {
+		ctx.JSON(200, gin.H{
+			"code":    0,
+			"message": "error",
+		})
+		return
+	}
+	ext := filepath.Ext(file.Filename)
+
+	if ext != ".png" && ext != ".jpeg" && ext != ".jpg" {
+		ctx.JSON(200, gin.H{
+			"code":    0,
+			"message": "文件格式错误:" + ext,
+		})
+		return
+	}
+	uid := ctx.PostForm("uid")
+	newUid, err := strconv.Atoi(uid)
+	if err != nil {
+		ctx.JSON(200, gin.H{
+			"code":    0,
+			"message": "error, file not exits",
+		})
+		return
+	}
+
+	fileName := utils.GetDateString() + ext
+	dataString := time.Now().Format("2006/01/02")
+	dirPath := "../upload/" + dataString
+
+	if _, error := os.Stat(dirPath); os.IsNotExist(error) {
+		err := os.MkdirAll(dirPath, os.ModePerm)
+		if err != nil {
+			log.Println(err)
+		}
+		os.Chmod(dirPath, 0777)
+		//如果文件夹不存在 则创建文件
+	}
+	dm := "http://chat.daguozhensi.com"
+	dst := dirPath + "/" + fileName
+	//执行文件的保存
+	ctx.SaveUploadedFile(file, dst)
+	headImg := dm + "/upload/" + dataString + "/" + fileName
+	affrected := db.Model(&User{}).Where("id", newUid).Update("head_img", headImg)
+
+	if affrected.Error != nil {
+		ctx.JSON(200, gin.H{
+			"code":    0,
+			"message": affrected.Error,
+		})
+	} else {
+		ctx.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+			"data": gin.H{
+				"head_img": headImg,
+			},
+		})
+	}
+}
+
+//更新昵称
+func UpdateUser(ctx *gin.Context) {
+	nickname := ctx.PostForm("nickname")
+	uid := ctx.PostForm("uid")
+	newuid, _ := strconv.Atoi(uid)
+	affected := db.Model(&User{}).Where("id", newuid).Update("nickname", nickname)
+	if affected.Error != nil {
+		ctx.JSON(200, gin.H{
+			"code":    0,
+			"message": "error",
+		})
+	} else {
+		ctx.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+		})
+	}
+
+}
 func GetUserFollow(ctx *gin.Context) {
 
 	uid := ctx.PostForm("uid")
@@ -158,12 +246,8 @@ func GetUserFollow(ctx *gin.Context) {
 	affected := db.Model(&Friend{}).Where("uid", newUid).Where("fid", newFid).Take(&friend)
 	if affected.Error != nil {
 		ctx.JSON(200, gin.H{
-			"code":    200,
-			"message": "success",
-			"data": gin.H{
-				"user":      one,
-				"is_follow": 0,
-			},
+			"code":    0,
+			"message": "error",
 		})
 	} else {
 		ctx.JSON(200, gin.H{

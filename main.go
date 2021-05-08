@@ -21,7 +21,7 @@ func main() {
 	go serve.Run()
 
 	router := gin.Default()
-
+	router.MaxMultipartMemory = 2 << 20
 	router.POST("/api/user", model.GetUser)
 	router.POST("/api/login", model.Login)
 	router.POST("/api/register", model.Register)
@@ -32,6 +32,8 @@ func main() {
 	router.POST("/api/message/new", func(ctx *gin.Context) {
 		model.NewMessage(serve, ctx)
 	})
+	router.POST("/api/user/update", model.UpdateUser)
+	router.POST("/api/user/upload", model.SaveHeadImg)
 	//心情
 	router.POST("/api/mood/add", model.AddMood)
 	router.POST("/api/mood/one", model.OneMood)

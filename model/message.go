@@ -17,6 +17,7 @@ type MessageMix struct {
 	FromId    int    `gorm:"from_id" json:"from_id"`
 	ToId      int    `gorm:"to_id" json:"to_id"`
 	Content   string `gorm:"content" json:"content"`
+	IsRead    string `gorm:"is_read" json:"is_read"`
 }
 
 type Message struct {
