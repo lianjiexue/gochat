@@ -7,6 +7,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//我发的所有心情
+func MoodsLists(ctx *gin.Context) {
+	uid := ctx.PostForm("uid")
+	page := ctx.PostForm("page")
+	newUid, _ := strconv.Atoi(uid)
+	newPage, _ := strconv.Atoi(page)
+	moods := model.GetFUllMoods(newUid, newPage)
+	ctx.JSON(200, gin.H{
+		"code":    200,
+		"message": "success",
+		"data":    moods,
+	})
+}
+
 //获取一条心情记录
 func OneMood(ctx *gin.Context) {
 	mood := model.OneMood()
