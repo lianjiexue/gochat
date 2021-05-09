@@ -1,7 +1,7 @@
 package main
 
 import (
-	"app/model"
+	"app/controller"
 	"app/socket"
 	"log"
 
@@ -22,26 +22,26 @@ func main() {
 
 	router := gin.Default()
 	router.MaxMultipartMemory = 2 << 20
-	router.POST("/api/user", model.GetUser)
-	router.POST("/api/login", model.Login)
-	router.POST("/api/register", model.Register)
+
+	router.POST("/api/login", controller.Login)
+	router.POST("/api/register", controller.Register)
 	//个人
-	router.POST("/api/user/info", model.GetUserByUid)
-	router.POST("/api/user/follow", model.GetUserFollow)
-	router.POST("/api/user/friends", model.UserFriends)
+	router.POST("/api/user/info", controller.UserInfo)
+	router.POST("/api/user/follow", controller.UserFollow) //返回当前人物信息，并且返回是否已经关注
+	router.POST("/api/user/friends", controller.MyFriends)
 	router.POST("/api/message/new", func(ctx *gin.Context) {
-		model.NewMessage(serve, ctx)
+		controller.NewMessage(serve, ctx)
 	})
-	router.POST("/api/user/update", model.UpdateUser)
-	router.POST("/api/user/upload", model.SaveHeadImg)
+	router.POST("/api/user/update", controller.UpdateNickname)
+	router.POST("/api/user/upload", controller.UpdateHeadImg)
 	//心情
-	router.POST("/api/mood/add", model.AddMood)
-	router.POST("/api/mood/one", model.OneMood)
-	router.POST("/api/mood/del", model.DelMood)
+	router.POST("/api/mood/add", controller.AddMood)
+	router.POST("/api/mood/one", controller.OneMood)
+	router.POST("/api/mood/del", controller.DelMood)
 
 	//好友
-	router.POST("/api/friend/follow", model.Follow)
-	router.POST("/api/friend/unfollow", model.UnFollow)
+	router.POST("/api/friend/follow", controller.Follow)
+	router.POST("/api/friend/unfollow", controller.Unfollow)
 	//ws服务
 	router.GET("/ws", func(ctx *gin.Context) {
 		socket.Ws(serve, ctx)

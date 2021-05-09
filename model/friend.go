@@ -2,9 +2,6 @@ package model
 
 import (
 	"log"
-	"strconv"
-
-	"github.com/gin-gonic/gin"
 )
 
 type Friend struct {
@@ -15,7 +12,14 @@ type Friend struct {
 func (u *Friend) TableName() string {
 	return "gc_friends"
 }
-
+func GetFriendsById(uid int) []User {
+	var fids []int
+	db.Table("gc_friends").Where("uid", uid).Pluck("fid", &fids)
+	log.Println(fids)
+	var users []User
+	db.Where("id IN ?", fids).Find(&users)
+	return users
+}
 func getFriendsById(uid int) []User {
 	var fids []int
 	db.Table("gc_friends").Where("uid", uid).Pluck("fid", &fids)
@@ -24,74 +28,40 @@ func getFriendsById(uid int) []User {
 	db.Where("id IN ?", fids).Find(&users)
 	return users
 }
-func UnFollow(ctx *gin.Context) {
-	uid := ctx.PostForm("uid")
-	fid := ctx.PostForm("fid")
-	newUid, _ := strconv.Atoi(uid)
-	newFid, _ := strconv.Atoi(fid)
-	var friend Friend
-	result := db.Where("uid", newUid).Where("fid", newFid).Take(&friend)
-	log.Println(result)
-	log.Print(friend)
-	log.Println(newFid, newUid)
-	if result.Error != nil {
-		ctx.JSON(200, gin.H{
-			"code":    0,
-			"message": "未关注",
-		})
-		return
-	}
-	friend.Uid = newUid
-	friend.Fid = newFid
-	affected := db.Where("uid", newUid).Where("fid", newFid).Delete(&friend)
 
-	log.Println(affected)
-	if affected.Error != nil {
-		ctx.JSON(200, gin.H{
-			"code":    0,
-			"message": "error",
-		})
-	} else {
-		ctx.JSON(200, gin.H{
-			"code":    200,
-			"message": "success",
-		})
+//移除好友
+func RemoveFriend(uid int, fid int) bool {
+
+	affected := db.Where("uid", uid).Where("fid", fid).Delete(&Friend{})
+	if affected.Error == nil {
+		return true
 	}
+	return true
 }
 
-func Follow(ctx *gin.Context) {
-	uid := ctx.PostForm("uid")
-	fid := ctx.PostForm("fid")
-	newUid, _ := strconv.Atoi(uid)
-	newFid, _ := strconv.Atoi(fid)
-	// 执行查询 看是否已经关注
-	var friend Friend
-	result := db.Model(&Friend{Uid: newUid, Fid: newFid}).Take(&friend)
-	if result.Error != nil {
-		ctx.JSON(200, gin.H{
-			"code":    0,
-			"message": "error",
-		})
-		return
-	}
+//添加好友
+
+func AddFriend(uid int, fid int) bool {
 	// 执行关注
 	var newFriend Friend
 
-	newFriend.Uid = newUid
-	newFriend.Fid = newFid
+	newFriend.Uid = uid
+	newFriend.Fid = fid
 
-	afreact := db.Model(&Friend{}).Create(&newFriend)
-	if afreact.Error != nil {
-		ctx.JSON(200, gin.H{
-			"code": 0,
-		})
-
-	} else {
-
-		ctx.JSON(200, gin.H{
-			"code":    200,
-			"message": "success",
-		})
+	affrected := db.Model(&Friend{}).Create(&newFriend)
+	if affrected.Error == nil {
+		return true
 	}
+	return false
+}
 
+//判断是否已经是好友了
+
+func IsFriend(uid int, fid int) bool {
+	var friend Friend
+	result := db.Model(&Friend{Uid: uid, Fid: fid}).Take(&friend)
+	if result.Error == nil {
+		return false
+	}
+	return true
 }
