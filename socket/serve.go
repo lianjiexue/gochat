@@ -91,10 +91,7 @@ func (c *Client) Done() {
 }
 func (s *Serve) GetClinet(uid int) *Client {
 	cli := new(Client)
-	log.Println(s.Clients)
 	for _, client := range s.Clients {
-		//获取到客户端
-		log.Println("获取到客户端", client)
 		if client.Uid == uid {
 			cli = client
 			break

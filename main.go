@@ -1,7 +1,7 @@
 package main
 
 import (
-	"app/controller"
+	"app/router"
 	"log"
 )
 
@@ -10,5 +10,5 @@ func init() {
 }
 
 func main() {
-	controller.Run()
+	router.Run()
 }
