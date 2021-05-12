@@ -10,6 +10,8 @@ gorm.io/gorm
 
 go get github.com/dgrijalva/jwt-go
 
+github.com/go-redis/redis/v8
+
 ### 其它
 前端使用vue3实现，前后端分离开发，有一层nginx做转发和静态文件的处理
 ### 在线测试
