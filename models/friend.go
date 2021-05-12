@@ -59,9 +59,9 @@ func AddFriend(uid int, fid int) bool {
 
 func IsFriend(uid int, fid int) bool {
 	var friend Friend
-	result := db.Model(&Friend{Uid: uid, Fid: fid}).Take(&friend)
+	result := db.Model(&Friend{}).Where("uid", uid).Where("fid", fid).Take(&friend)
 	if result.Error == nil {
-		return false
+		return true
 	}
-	return true
+	return false
 }

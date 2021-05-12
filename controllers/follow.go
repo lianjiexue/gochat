@@ -42,7 +42,7 @@ func Follow(ctx *gin.Context) {
 	//添加好友
 	is_ok := models.AddFriend(newUid, newFid)
 
-	if is_ok {
+	if !is_ok {
 		ctx.JSON(200, gin.H{
 			"code": 0,
 		})
@@ -64,7 +64,7 @@ func Unfollow(ctx *gin.Context) {
 	//
 	is_remove := models.RemoveFriend(newUid, newFid)
 
-	if is_remove {
+	if !is_remove {
 		ctx.JSON(200, gin.H{
 			"code":    0,
 			"message": "error",
