@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/xid"
 )
 
 var key = "fWsl8sEV4Jw2G!Q9!20Vl*pSyZebqoyr"
@@ -30,6 +31,7 @@ type RegisterUser struct {
 	Email    string `gorm:"email" json:"email"`
 	HeadImg  string `gorm:"head_img" json:"head_img"`
 	Sex      string `gorm:"sex" json:"sex"`
+	Guid     string `gorm:"guid" json:"guid"`
 }
 
 func (u *User) TableName() string {
@@ -97,8 +99,8 @@ func GetOneUser(email string, password string) User {
 func AddUser(email string, password string, sex string) User {
 	newPassword := utils.Md5(password + key)
 	var res User
-	oneUser := RegisterUser{Email: email, Password: newPassword, Nickname: email, HeadImg: "https://chat.daguozhensi.com/images/head_img.png", Sex: sex}
-	result := db.Select("nickname", "password", "email", "head_img", "sex").Create(&oneUser)
+	oneUser := RegisterUser{Email: email, Password: newPassword, Nickname: email, HeadImg: "https://chat.daguozhensi.com/images/head_img.png", Sex: sex, Guid: xid.New().String()}
+	result := db.Select("nickname", "password", "email", "head_img", "sex", "guid").Create(&oneUser)
 	if result.RowsAffected != 0 {
 		return res
 	}

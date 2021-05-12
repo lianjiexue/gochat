@@ -1,7 +1,7 @@
 package modeltest
 
 import (
-	"app/model"
+	"app/models"
 	"context"
 	"log"
 	"testing"
@@ -15,8 +15,8 @@ func TestRedis(t *testing.T) {
 	t.Log("执行成功")
 }
 func TestRdb(t *testing.T) {
-	model.Rdb.Set(ctx, "hello", "guo", 12)
-	t.Log(model.Rdb.Get(ctx, "hello"))
+	models.Rdb.Set(ctx, "hello", "guo", 12)
+	t.Log(models.Rdb.Get(ctx, "hello"))
 }
 func TestHello(t *testing.T) {
 	t.Log("hello")

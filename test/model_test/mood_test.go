@@ -1,12 +1,12 @@
 package model_test
 
 import (
-	"app/model"
+	"app/models"
 	"testing"
 )
 
 func TestList(t *testing.T) {
-	lists := model.GetFUllMoods(1, 5)
+	lists := models.GetFUllMoods(1, 5)
 	t.Log(lists)
 	t.Log("ok")
 }

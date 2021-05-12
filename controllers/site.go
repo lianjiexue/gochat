@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"app/lib"
 	"app/models"
 
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,7 @@ func Login(ctx *gin.Context) {
 			"data": gin.H{
 				"user":    user,
 				"friends": friends,
+				"token":   lib.CreateToken(user.Id),
 			},
 		})
 	} else {
