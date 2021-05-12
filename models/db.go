@@ -1,6 +1,7 @@
 package models
 
 import (
+	"app/config"
 	"log"
 	"os"
 	"time"
@@ -22,7 +23,7 @@ func init() {
 			Colorful:      false,       // 禁用彩色打印
 		},
 	)
-	dsn := "root:root@tcp(127.0.0.1:3306)/chat?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "root:" + config.Password + "@tcp(127.0.0.1:3306)/chat?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})

@@ -2,12 +2,13 @@ package models
 
 import (
 	"context"
+	"log"
 
 	"github.com/go-redis/redis/v8"
 )
 
 var Rdb *redis.Client
-var ctx = context.Background()
+var Rdbctx = context.Background()
 
 func init() {
 
@@ -16,5 +17,6 @@ func init() {
 		Password: "",
 		DB:       0,
 	})
-	Rdb.Ping(ctx)
+	res := Rdb.Ping(Rdbctx)
+	log.Println(res.Result())
 }

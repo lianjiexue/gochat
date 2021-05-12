@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"log"
 	"time"
 
@@ -29,8 +30,24 @@ func (m *Message) TableName() string {
 	return "gc_message"
 }
 
+var msgs = make(chan Message, 10)
+
+func writeToRedis() {
+	//开一个协程去处理消息
+	for {
+		select {
+		case msg := <-msgs:
+			data, _ := json.Marshal(msg)
+			//将消息写入redis
+			Rdb.LPush(Rdbctx, "messages", data)
+			//db.Model(&Message{}).Create(&msg)
+		}
+	}
+}
+
 // 发新消息
 func NewMessage(from_id int, to_id int, content string) MessageNew {
+
 	var msg Message
 	var msgnew MessageNew
 	msg.MessageId = uuid.New()
@@ -39,12 +56,8 @@ func NewMessage(from_id int, to_id int, content string) MessageNew {
 	msg.Content = content
 	msg.Time = int(time.Now().Unix())
 	msg.IsRead = 0
-	log.Println(msg)
-	affected := db.Model(&Message{}).Create(&msg)
-	if affected.Error != nil {
-		return msgnew
-	}
-
+	msgs <- msg
+	go writeToRedis()
 	msgnew.MessageMix = msg.MessageMix
 	msgnew.Datetime = time.Unix(int64(msg.Time), 0).Format("2006.1.2")
 	return msgnew
@@ -57,4 +70,25 @@ func GetFullUnReadMessage(uid int) []Message {
 }
 func SetReaded(id int) {
 	db.Model(&Message{}).Where("id", id).Update("is_read", 1)
+}
+
+//从redis中去读取 10个消息批量写入
+func SaveMessage() {
+	var messages []Message
+	log.Println("执行一次批量保存")
+	for i := 0; i < 10; i++ {
+		rdbcmd := Rdb.LPop(Rdbctx, "messages")
+		result, err := rdbcmd.Result()
+		if err != nil {
+			var oneMessage Message
+			json.Unmarshal([]byte(result), &oneMessage)
+			messages = append(messages, oneMessage)
+		}
+
+	}
+	//批量写入数据库
+	if len(messages) > 0 {
+		db.Create(messages)
+	}
+
 }

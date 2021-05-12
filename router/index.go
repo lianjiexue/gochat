@@ -3,6 +3,7 @@ package router
 import (
 	"app/controllers"
 	"app/socket"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,7 +11,14 @@ import (
 func Run() {
 	serve := &socket.Serve{Clients: make(map[string]*socket.Client), Messages: make(chan []byte), On: make(chan *socket.Client), Off: make(chan *socket.Client)}
 	go serve.Run()
-
+	//开一个定时任务,实现消息的批量写入数据库
+	go func() {
+		Timer := time.NewTicker(60 * time.Second)
+		select {
+		case <-Timer.C:
+			controllers.SaveMessage()
+		}
+	}()
 	router := gin.Default()
 	router.MaxMultipartMemory = 2 << 20
 
