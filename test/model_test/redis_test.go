@@ -19,3 +19,7 @@ func TestLpuss(t *testing.T) {
 	models.Rdb.LPush(models.Rdbctx, "messages", 123)
 	t.Log("ok")
 }
+func TestSaveMsg(t *testing.T) {
+	models.SaveMessage()
+	t.Log("ok")
+}

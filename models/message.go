@@ -76,19 +76,33 @@ func SetReaded(id int) {
 func SaveMessage() {
 	var messages []Message
 	log.Println("执行一次批量保存")
-	for i := 0; i < 10; i++ {
-		rdbcmd := Rdb.LPop(Rdbctx, "messages")
-		result, err := rdbcmd.Result()
-		if err != nil {
-			var oneMessage Message
-			json.Unmarshal([]byte(result), &oneMessage)
-			messages = append(messages, oneMessage)
+	cmdString := Rdb.LLen(Rdbctx, "messages")
+	longth, err := cmdString.Result()
+	if err == nil {
+		deep := 0
+		if longth < 10 {
+			deep = int(longth)
+		} else {
+			deep = 10
+		}
+		log.Println(deep)
+		for i := 0; i < deep; i++ {
+			rdbcmd := Rdb.LPop(Rdbctx, "messages")
+			result, err := rdbcmd.Result()
+			log.Println(result, err)
+			if err == nil {
+				var oneMessage Message
+				json.Unmarshal([]byte(result), &oneMessage)
+				if oneMessage.MessageId != "" {
+					messages = append(messages, oneMessage)
+				}
+			}
+
+		}
+		//批量写入数据库
+		if len(messages) > 0 {
+			db.Create(messages)
 		}
 
 	}
-	//批量写入数据库
-	if len(messages) > 0 {
-		db.Create(messages)
-	}
-
 }

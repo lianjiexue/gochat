@@ -14,10 +14,14 @@ func Run() {
 	//开一个定时任务,实现消息的批量写入数据库
 	go func() {
 		Timer := time.NewTicker(60 * time.Second)
-		select {
-		case <-Timer.C:
-			controllers.SaveMessage()
+		for {
+			select {
+			case <-Timer.C:
+				controllers.SaveMessage()
+			}
+
 		}
+
 	}()
 	router := gin.Default()
 	router.MaxMultipartMemory = 2 << 20
